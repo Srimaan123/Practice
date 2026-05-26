@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+
+
     <style>
         *{
             transition: all 0.1s ease;
@@ -31,6 +34,9 @@
         }
         .checkbox{
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .delete{
             opacity: 0;
@@ -50,16 +56,17 @@
             column-gap: 16px;
         }
         .add-task{
-            z-index:1;
+            z-index:40;
             display:none;
         }
         .overlay{
-            z-index: 0;
+            z-index: 30;
             display: none;
         }
     </style>
 </head>
 <body>
+    
     <div class="main bg-zinc-900 w-full h-dvh flex justify-center items-center">
         <div class="box bg-[rgba(255,255,255,0.15)] rounded-xl w-6/12 h-full border-2 border-gray-600 flex flex-col items-center">
             <div class="header border-2 border-gray-600 flex items-center p-2 relative w-full">
@@ -80,21 +87,23 @@
             </div>
             <div class="task-wrap flex flex-col items-center w-full grow">
                 {% for task in tasks %}
-                <div class="task relative flex items-center bg-[rgba(255,255,255,0.15)] p-2 w-[90%] mt-4 mb-4 rounded-xl">
-                    <span class="checkbox h-[20px] w-[20px] bg-gray-500 inline-block text-zinc-100 text-[16px]"></span>
-                    <p class="text-zinc-100 text-[20px] inline-block ml-[2em]">{{task.task}}</p>
+                <form action="/" class="task relative flex items-center bg-[rgba(255,255,255,0.15)] p-2 w-[90%] mt-4 mb-4 rounded-xl" method="post">
+                    <span class="checkbox h-[20px] w-[20px] bg-gray-500 inline-block text-zinc-900 text-[16px]" style="cursor: pointer;" onclick="this.closest('form').querySelector('.operation').value='change-status'"></span>
+                    <input type="hidden" class="operation" name="operation" value="">
+                    <p class="text-zinc-100 text-[20px] inline-block ml-[2em]">{{task[1]}}</p>
+                    <input type="hidden" name="id" value="{{ task[0] }}">
+                    <input type="hidden" class="status" name="status" value="{{ task[2] }}">
                     <button class="delete bg-[transparent] hover:text-red-400 text-red-500 absolute right-4">delete</button>
-                </div>
+                </form>
                 {% endfor %}
             </div>
             
             <div class="footer">
                 <p class="text-[16px] text-zinc-400 !opacity-80 m-2">Track your progress with this</p>
-                
             </div>
         </div>
         <div class="add-task bg-zinc-600 w-6/12 p-2 absolute">
-            <form id="add-form" action="/" method="post">
+            <form id="add-form" action="/" method="post" >
                 <label for="task" class="text-xl text-zinc-100 m-2">Enter the task:</label>
                 <input type="text" class="p-2 text-zinc-100 bg-[rgba(255,255,255,0.2)] border-0 hover:bg-[rgba(255,255,255,0.3)]" name="task" placeholder="enter the task">
                 <button class="bg-zinc-100 border-0 p-2" id="add">add</button>
@@ -105,13 +114,16 @@
     <script>
         let checkboxes = document.querySelectorAll(".checkbox");
         let totalTasks = checkboxes.length;
+        let tasks = document.querySelectorAll(".task");
         document.querySelector(".total").textContent = totalTasks;
-        let tasksCompleted = 0;
+
         let addBtn = document.querySelector(".add");
         let overlay = document.querySelector(".overlay");
         let addTask = document.querySelector(".add-task");
         let add = document.querySelector("#add");
         let addForm = document.querySelector("#add-form");
+        let operations = document.querySelectorAll(".operation");
+        let statuses = document.querySelectorAll(".status");
 
         addBtn.addEventListener("click",(e)=>{
             e.stopImmediatePropagation()
@@ -121,19 +133,36 @@
         overlay.addEventListener("click",(e)=>{
             addTask.style.display = "none";
             overlay.style.display = "none";
-        })
-        checkboxes.forEach(box=>box.addEventListener("click",()=>{
-            if(box.textContent == "✔"){
-                tasksCompleted --;
-                box.textContent = "";
-            }else{
-                box.textContent = "✔";
-                tasksCompleted ++;
-            }
+        });
+
+        function updateCheckboxes() {
+            let tasksCompleted = 0;
+            checkboxes.forEach((checkbox,i)=>{
+                currentStatus = statuses[i].value;
+                if(currentStatus == 1){
+                    checkbox.textContent = "✓";
+                    checkbox.classList.add("bg-zinc-100");
+                    tasksCompleted ++;
+                }else{
+                    checkbox.textContent = "";
+                }
+            });
             document.querySelector("#completed").textContent = tasksCompleted;
+            if (totalTasks == 0){ document.querySelector(".percentage").textContent = "0%"; return;}
             let percentage = (document.querySelector("#completed").textContent/document.querySelector(".total").textContent) * 100;
-            document.querySelector(".percentage").textContent = percentage+"%";
-        }));
+            document.querySelector(".percentage").textContent = Math.round(percentage)+"%";
+        }
+
+        updateCheckboxes();
+
+        checkboxes.forEach((box,i)=>{
+            box.addEventListener("click",(e)=>{
+                e.preventDefault();
+                let form = box.parentElement;
+                form.querySelector('.operation').value = "change-status";
+                form.submit();
+            });
+        });
 
         add.addEventListener("click",(e)=>{
             e.preventDefault();
