@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        *{
+            transition: all 0.1s ease;
+        }
+        h1{
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+            
+        }
+        button{
+            transition: all 0.2s ease;
+        }
+        
+        .add:hover{
+            scale: 0.95;
+        }
+        .header{
+            border-left: 0;
+            border-right: 0;
+            border-top: 0;
+        }
+        .quote{
+            opacity: 0.8;
+        }
+        .checkbox{
+            border-radius: 50%;
+        }
+        .delete{
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        .task:hover>.delete{
+            opacity: 1;
+        }
+        .task-wrap{
+            overflow-y: auto;
+        }
+        .section{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+            width: 90%;
+            column-gap: 16px;
+        }
+        .add-task{
+            z-index:1;
+            display:none;
+        }
+        .overlay{
+            z-index: 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="main bg-zinc-900 w-full h-dvh flex justify-center items-center">
+        <div class="box bg-[rgba(255,255,255,0.15)] rounded-xl w-6/12 h-full border-2 border-gray-600 flex flex-col items-center">
+            <div class="header border-2 border-gray-600 flex items-center p-2 relative w-full">
+                <div class="head-wrap">
+                    <h1 class="p-2 rounded-xl text-gray-100 font-bold text-3xl">Your List</h1>
+                    <p class="quote text-[16px] text-zinc-400 ml-2">Take Time but achieve all goals</p>
+                </div>
+                <button class="add bg-zinc-100 border-0 h-8/12 rounded-xl text-xl absolute right-2 text-zinc-900 pl-2 pr-2">add a task</button>
+            </div>
+            <div class="section p-2">
+                <div class="wrap hover:scale-105 bg-gradient-to-r from-sky-400 to-sky-600 p-2 rounded-xl">
+                    <span class="completed text-2xl text-gray-100 font-black" id="completed">0</span><span class="text-zinc-300">/</span><span class="total text-base text-zinc-300">4</span>
+                    <p class="text-base text-zinc-300">Tasks are completed</p>
+                </div>
+                <div class="wrap hover:scale-105 bg-gradient-to-l from-sky-400 to-sky-600 rounded-xl p-2">
+                    <span class="percentage text-3xl text-zinc-100 font-black">0%</span><span class="text-zinc-300 text-base ml-2">of all tasks are completed</span>
+                </div>
+            </div>
+            <div class="task-wrap flex flex-col items-center w-full grow">
+                {% for task in tasks %}
+                <div class="task relative flex items-center bg-[rgba(255,255,255,0.15)] p-2 w-[90%] mt-4 mb-4 rounded-xl">
+                    <span class="checkbox h-[20px] w-[20px] bg-gray-500 inline-block text-zinc-100 text-[16px]"></span>
+                    <p class="text-zinc-100 text-[20px] inline-block ml-[2em]">{{task.task}}</p>
+                    <button class="delete bg-[transparent] hover:text-red-400 text-red-500 absolute right-4">delete</button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="footer">
+                <p class="text-[16px] text-zinc-400 !opacity-80 m-2">Track your progress with this</p>
+                
+            </div>
+        </div>
+        <div class="add-task bg-zinc-600 w-6/12 p-2 absolute">
+            <form id="add-form" action="/" method="post">
+                <label for="task" class="text-xl text-zinc-100 m-2">Enter the task:</label>
+                <input type="text" class="p-2 text-zinc-100 bg-[rgba(255,255,255,0.2)] border-0 hover:bg-[rgba(255,255,255,0.3)]" name="task" placeholder="enter the task">
+                <button class="bg-zinc-100 border-0 p-2" id="add">add</button>
+            </form>
+        </div>
+        <div class="overlay absolute top-0 left-0 w-[100vw] h-dvh bg-[rgba(0,0,0,0.8)]"></div>
+    </div>
+    <script>
+        let checkboxes = document.querySelectorAll(".checkbox");
+        let totalTasks = checkboxes.length;
+        document.querySelector(".total").textContent = totalTasks;
+        let tasksCompleted = 0;
+        let addBtn = document.querySelector(".add");
+        let overlay = document.querySelector(".overlay");
+        let addTask = document.querySelector(".add-task");
+        let add = document.querySelector("#add");
+        let addForm = document.querySelector("#add-form");
+
+        addBtn.addEventListener("click",(e)=>{
+            e.stopImmediatePropagation()
+            addTask.style.display = "block";
+            overlay.style.display = "block";
+        });
+        overlay.addEventListener("click",(e)=>{
+            addTask.style.display = "none";
+            overlay.style.display = "none";
+        })
+        checkboxes.forEach(box=>box.addEventListener("click",()=>{
+            if(box.textContent == "✔"){
+                tasksCompleted --;
+                box.textContent = "";
+            }else{
+                box.textContent = "✔";
+                tasksCompleted ++;
+            }
+            document.querySelector("#completed").textContent = tasksCompleted;
+            let percentage = (document.querySelector("#completed").textContent/document.querySelector(".total").textContent) * 100;
+            document.querySelector(".percentage").textContent = percentage+"%";
+        }));
+
+        add.addEventListener("click",(e)=>{
+            e.preventDefault();
+            addForm.submit();
+        })
+        
+    </script>
+</body>
+</html>
