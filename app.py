@@ -37,6 +37,13 @@ def hello():
             conn.commit()
             conn.close()
             return redirect("/")
+        elif operation == "delete":
+            task_id = request.form.get("id")
+            cursor.execute("DELETE FROM tasks WHERE id=?",(task_id,))
+            conn.commit()
+            conn.close()
+            return redirect("/")
+            
         else:
             task = request.form.get("task")
             status = 0
